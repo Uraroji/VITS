@@ -114,7 +114,6 @@ if load_model_iter is not None and load_model_dir is not None :
 	model_path = load_model_dir + f'iteration{load_model_iter}/netD_cpu.pth'
 	netD.load_state_dict(torch.load(model_path))
 	print('Load model: ', model_path)
-	total_iterations -= load_model_iter
 #ネットワークをデバイスに移動
 netD = netD.to(device)
 
@@ -139,6 +138,8 @@ losses_recorded = {
 }
 #現在のイテレーション回数
 now_iteration = 0
+if load_model_iter is not None and load_model_dir is not None :
+	now_iteration += load_model_iter
 
 print("Start Training")
 
@@ -150,7 +151,7 @@ netG.train()
 netD.train()
 
 #エポックごとのループ　itertools.count()でカウンターを伴う無限ループを実装可能
-for epoch in itertools.count():
+for epoch in itertools.count(start=load_model_iter):
 	#データセットからbatch_size個ずつ取り出し学習
 	for data in train_loader:
 		#各データをdeviceに転送
