@@ -71,12 +71,15 @@ hop_length = 256
 #メルスペクトログラムの縦軸(周波数領域)の次元
 melspec_freq_dim = 80
 
+load_model_iter = 15000
+load_model_dir = "./output/vits/train/"
+
 #出力用ディレクトリがなければ作る
 os.makedirs(output_dir, exist_ok=True)
 
 #GPUが使用可能かどうか確認
 device = torch.device(device if torch.cuda.is_available() else "cpu")
-print("device:",device)
+print("device:", device)
 
 ###データセットの読み込み、データセット作成###
 #wavファイル、話者id、テキスト(音素列)の3つを読み込むためのDatasetクラス(学習用)
@@ -98,11 +101,20 @@ print("train dataset size: {}".format(len(train_dataset)))
 
 #Generatorのインスタンスを生成
 netG = VitsGenerator(n_phoneme=n_phoneme, n_speakers=n_speakers)
+if load_model_iter is not None and load_model_dir is not None :
+	model_path = load_model_dir + f'iteration{load_model_iter}/netG_cpu.pth'
+	netG.load_state_dict(torch.load(model_path))
+	print('Load model: ', model_path)
 #ネットワークをデバイスに移動
 netG = netG.to(device)
 
 #Discriminatorのインスタンスを生成
 netD = VitsDiscriminator()
+if load_model_iter is not None and load_model_dir is not None :
+	model_path = load_model_dir + f'iteration{load_model_iter}/netD_cpu.pth'
+	netD.load_state_dict(torch.load(model_path))
+	print('Load model: ', model_path)
+	total_iterations -= load_model_iter
 #ネットワークをデバイスに移動
 netD = netD.to(device)
 
